@@ -1,0 +1,69 @@
+#/**
+#* Scandiweb_SliderGraphQl
+#*
+#* @category    Scandiweb
+#* @package     Scandiweb_SliderGraphQl
+#* @author      Kriss Andrejevs <info@scandiweb.com>
+#* @copyright   Copyright (c) 2018 Scandiweb, Ltd (https://scandiweb.com)
+#*/
+
+type Query {
+    scandiwebSlider(id: ID!): Slider @resolver(class: "ScandiPWA\\SliderGraphQl\\Model\\Resolver\\Slider") @doc(description: "The scandiwebSlider entity returns slider data")
+}
+
+type Slider @doc(description: "foo defines bar"){
+    slider_id: ID @doc(description: "")
+    title: String @doc(description: "")
+    is_active: Boolean @doc(description: "")
+    show_menu: Boolean @doc(description: "")
+    show_navigation: Boolean @doc(description: "")
+    slide_speed: Int @doc(description: "")
+    position: Int @doc(description: "")
+    animation_speed: Int @doc(description: "")
+    slides_to_display: Int @doc(description: "")
+    slides_to_scroll: Int @doc(description: "")
+    lazy_load: Boolean @doc(description: "")
+    slides_to_display_tablet: Int @doc(description: "")
+    slides_to_scroll_tablet: Int @doc(description: "")
+    slides_to_display_mobile: Int @doc(description: "")
+    slides_to_scroll_mobile: Int @doc(description: "")
+    slides: [Slide]
+}
+
+type Slide @doc(description: "") {
+    slide_id: ID @doc(description: "")
+    title: String @doc(description: "")
+    image: String @doc(description: "")
+    is_active: Boolean @doc(description: "")
+    position: Int @doc(description: "")
+    start_time: String @doc(description: "")
+    end_time: String @doc(description: "")
+    slide_link: String @doc(description: "")
+    slide_link_text: String @doc(description: "")
+    display_title: String @doc(description: "")
+    slide_text: String @doc(description: "")
+    embed_code: String @doc(description: "")
+    image_2: String @doc(description: "")
+    embed_code_2: String @doc(description: "")
+    slide_link_2: String @doc(description: "")
+    display_title_2: String @doc(description: "")
+    slide_text_2: String @doc(description: "")
+    slide_text_position_2: Int @doc(description: "")
+    image_3: String @doc(description: "")
+    embed_code_3: String @doc(description: "")
+    slide_link_3: String @doc(description: "")
+    display_title_3: String @doc(description: "")
+    slide_text_3: String @doc(description: "")
+    slide_text_position_3: Int @doc(description: "")
+    slide_text_position: Int @doc(description: "")
+    slide_width_class: String @doc(description: "")
+    maps: [Map]
+}
+
+type Map @doc(description: "") {
+    map_id: ID @doc(description: "")
+    title: String @doc(description: "")
+    coordinates: String @doc(description: "")
+    is_active: Boolean @doc(description: "")
+    product_id: Int @doc(description: "")
+}
