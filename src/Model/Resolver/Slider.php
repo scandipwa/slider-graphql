@@ -11,6 +11,7 @@ declare(strict_types=1);
 
 namespace ScandiPWA\SliderGraphQl\Model\Resolver;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\Resolver\Value;
@@ -108,12 +109,16 @@ class Slider implements ResolverInterface
                 ->getItems();
 
             foreach ($sliderData['slides'] as &$slide) {
+                if (array_key_exists('image', $slide) && isset($slide['image'])){
+                    $slide['image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['image'];
+                }
                 foreach ($maps as $map) {
                     if ($map['slide_id'] === $slide['slide_id']) {
                         $slide['maps'][] = $map;
                     }
                 }
             }
+            unset ($slide);
 
             if ($sliderData) {
                 $result = function () use ($sliderData) {
