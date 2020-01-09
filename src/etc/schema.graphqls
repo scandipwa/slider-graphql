@@ -20,12 +20,12 @@ type Slider @doc(description: "foo defines bar"){
     slide_speed: Int @doc(description: "")
     position: Int @doc(description: "")
     animation_speed: Int @doc(description: "")
-    slides_to_display: Int @doc(description: "")
+    slides_to_display: Float @doc(description: "")
     slides_to_scroll: Int @doc(description: "")
     lazy_load: Boolean @doc(description: "")
-    slides_to_display_tablet: Int @doc(description: "")
+    slides_to_display_tablet: Float @doc(description: "")
     slides_to_scroll_tablet: Int @doc(description: "")
-    slides_to_display_mobile: Int @doc(description: "")
+    slides_to_display_mobile: Float @doc(description: "")
     slides_to_scroll_mobile: Int @doc(description: "")
     slides: [Slide]
 }
