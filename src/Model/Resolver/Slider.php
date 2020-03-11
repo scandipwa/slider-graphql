@@ -109,8 +109,11 @@ class Slider implements ResolverInterface
                 ->getItems();
 
             foreach ($sliderData['slides'] as &$slide) {
-                if (array_key_exists('image', $slide) && isset($slide['image'])){
-                    $slide['image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['image'];
+                if (array_key_exists('mobile_image', $slide) && isset($slide['mobile_image'])){
+                    $slide['mobile_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['mobile_image'];
+                }
+                if (array_key_exists('desktop_image', $slide) && isset($slide['desktop_image'])){
+                    $slide['desktop_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['desktop_image'];
                 }
                 foreach ($maps as $map) {
                     if ($map['slide_id'] === $slide['slide_id']) {
