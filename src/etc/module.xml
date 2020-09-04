@@ -1,19 +1,20 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Scandiweb_SliderGraphQl
+ * ScandiPWA - Progressive Web App for Magento
  *
- * @category    Scandiweb
- * @package     Scandiweb_SliderGraphQl
- * @author      Kriss Andrejevs <info@scandiweb.com>
- * @copyright   Copyright (c) 2018 Scandiweb, Ltd (https://scandiweb.com)
+ * Copyright © Scandiweb, Inc. All rights reserved.
+ * See LICENSE for license details.
+ *
+ * @license OSL-3.0 (Open Software License ("OSL") v. 3.0)
+ * @link https://github.com/scandipwa/quote-graphql
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="ScandiPWA_SliderGraphQl" setup_version="0.1.0">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <module name="ScandiPWA_SliderGraphQl">
         <sequence>
             <module name="Scandiweb_Slider"/>
-            <module name="Magento_GraphQl"/>
         </sequence>
     </module>
 </config>
