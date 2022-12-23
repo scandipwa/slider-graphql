@@ -11,16 +11,14 @@ declare(strict_types=1);
 
 namespace ScandiPWA\SliderGraphQl\Model\Resolver;
 
-use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\Resolver\Value;
 use Magento\Framework\GraphQl\Query\Resolver\ValueFactory;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
-
-use Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory as SliderCollectionFactory;
-use Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory as SlideCollectionFactory;
-use Scandiweb\Slider\Model\ResourceModel\Map\CollectionFactory as MapCollectionFactory;
+use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
+use Scandiweb\Slider\Api\SliderRepositoryInterface;
 
 /**
  * Class Slider
@@ -31,42 +29,25 @@ class Slider implements ResolverInterface
     /**
      * @var ValueFactory
      */
-    private $valueFactory;
+    protected $valueFactory;
 
     /**
-     * @var \Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory
+     * @var SliderRepositoryInterface
      */
-    protected $sliderCollectionFactory;
-
-    /**
-     * @var \Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory
-     */
-    protected $slideCollectionFactory;
-
-    /**
-     * @var \Scandiweb\Slider\Model\ResourceModel\Map\CollectionFactory
-     */
-    protected $mapCollectionFactory;
+    protected $sliderRepository;
 
     /**
      * Slider constructor.
      * @param ValueFactory $valueFactory
-     * @param \Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory $sliderCollectionFactory
-     * @param \Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory $slideCollectionFactory
-     * @param \Scandiweb\Slider\Model\ResourceModel\Map\CollectionFactory $mapCollectionFactory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param SliderRepositoryInterface $sliderRepository
      */
     public function __construct(
         ValueFactory $valueFactory,
-        SliderCollectionFactory $sliderCollectionFactory,
-        SlideCollectionFactory $slideCollectionFactory,
-        MapCollectionFactory $mapCollectionFactory
+        SliderRepositoryInterface $sliderRepository
 
     ) {
         $this->valueFactory = $valueFactory;
-        $this->sliderCollectionFactory = $sliderCollectionFactory;
-        $this->slideCollectionFactory = $slideCollectionFactory;
-        $this->mapCollectionFactory = $mapCollectionFactory;
+        $this->sliderRepository = $sliderRepository;
     }
 
     /**
@@ -88,47 +69,61 @@ class Slider implements ResolverInterface
             return null;
         };
 
-        if (isset($args['id'])) {
-
-            $slider = $this->sliderCollectionFactory->create();
-            $slider->addFieldToFilter('slider_id', $args['id'])->load();
-            $sliderData = $slider->getFirstItem()->getData();
-
-            $slides = $this->slideCollectionFactory->create();
-            $slides->addSliderFilter($args['id'])
-                ->addStoreFilter()
-                ->addDateFilter()
-                ->addIsActiveFilter()
-                ->addPositionOrder();
-
-            $sliderData['slides'] = $slides->getData();
-
-            $maps = $this->mapCollectionFactory->create();
-            $maps = $maps->addSliderFilter($args['id'])
-                ->addIsActiveFilter()
-                ->getItems();
-
-            foreach ($sliderData['slides'] as &$slide) {
-                if (array_key_exists('mobile_image', $slide) && isset($slide['mobile_image'])){
-                    $slide['mobile_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['mobile_image'];
-                }
-                if (array_key_exists('desktop_image', $slide) && isset($slide['desktop_image'])){
-                    $slide['desktop_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['desktop_image'];
-                }
-                foreach ($maps as $map) {
-                    if ($map['slide_id'] === $slide['slide_id']) {
-                        $slide['maps'][] = $map;
-                    }
-                }
-            }
-            unset ($slide);
-
-            if ($sliderData) {
-                $result = function () use ($sliderData) {
-                    return $sliderData;
-                };
-            }
+        if (!isset($args['id'])) {
+            return $this->valueFactory->create($result);
         }
+
+        $id = $args['id'];
+        try {
+            /** @var \Scandiweb\Slider\Model\Slider $slider */
+            $slider = $this->sliderRepository->get($id);
+        } catch (NoSuchEntityException $e) {
+            $result = function () use ($id) {
+                return new GraphQlNoSuchEntityException(__(`Slider with id "{$id}" does not exist.`));
+            };
+
+            return $this->valueFactory->create($result);
+        }
+
+        $sliderData = $slider->getData();
+        $sliderData['slides'] = [];
+        $slides = $slider->getSlides();
+
+        /** @var \Scandiweb\Slider\Model\Slide $slide */
+        foreach ($slides as $slide) {
+            $slideData = $slide->getData();
+            $slideData['maps'] = $slide->getMaps();
+
+            if ($slide->getFirstMobileImageLocation()) {
+                $slideData[$slide::FIRST_MOBILE_IMAGE] = $slide->getFirstMobileImageUrl();
+            }
+
+            if ($slide->getFirstDesktopImageLocation()) {
+                $slideData[$slide::FIRST_DESKTOP_IMAGE] = $slide->getFirstDesktopImageUrl();
+            }
+
+            if ($slide->getSecondMobileImageLocation()) {
+                $slideData[$slide::SECOND_MOBILE_IMAGE] = $slide->getSecondMobileImageUrl();
+            }
+
+            if ($slide->getSecondDesktopImageLocation()) {
+                $slideData[$slide::SECOND_DESKTOP_IMAGE] = $slide->getSecondDesktopImageUrl();
+            }
+
+            if ($slide->getThirdMobileImageLocation()) {
+                $slideData[$slide::THIRD_MOBILE_IMAGE] = $slide->getThirdMobileImageUrl();
+            }
+
+            if ($slide->getThirdDesktopImageLocation()) {
+                $slideData[$slide::THIRD_DESKTOP_IMAGE] = $slide->getThirdDesktopImageUrl();
+            }
+
+            $sliderData['slides'][] = $slideData;
+        }
+
+        $result = function () use ($sliderData) {
+            return $sliderData;
+        };
 
         return $this->valueFactory->create($result);
     }
