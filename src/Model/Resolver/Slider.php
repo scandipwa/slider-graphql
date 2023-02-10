@@ -69,6 +69,46 @@ class Slider implements ResolverInterface
         $this->mapCollectionFactory = $mapCollectionFactory;
     }
 
+
+    public function getSlider($id)
+    {
+        $slider = $this->sliderCollectionFactory->create();
+        $slider->addFieldToFilter('slider_id', $id)->load();
+        $sliderData = $slider->getFirstItem()->getData();
+
+        $slides = $this->slideCollectionFactory->create();
+        $slides->addSliderFilter($id)
+            ->addStoreFilter()
+            ->addDateFilter()
+            ->addIsActiveFilter()
+            ->addPositionOrder();
+
+        $sliderData['slides'] = $slides->getData();
+
+        $maps = $this->mapCollectionFactory->create();
+        $maps = $maps->addSliderFilter($id)
+            ->addIsActiveFilter()
+            ->getItems();
+
+        foreach ($sliderData['slides'] as &$slide) {
+            if (array_key_exists('mobile_image', $slide) && isset($slide['mobile_image'])) {
+                $slide['mobile_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['mobile_image'];
+            }
+            if (array_key_exists('desktop_image', $slide) && isset($slide['desktop_image'])) {
+                $slide['desktop_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['desktop_image'];
+            }
+            foreach ($maps as $map) {
+                if ($map['slide_id'] === $slide['slide_id']) {
+                    $slide['maps'][] = $map;
+                }
+            }
+        }
+
+        unset ($slide);
+
+        return $sliderData;
+    }
+
     /**
      * @param Field $field
      * @param $context
@@ -78,56 +118,25 @@ class Slider implements ResolverInterface
      * @return Value
      */
     public function resolve(
-        Field $field,
-        $context,
+        Field       $field,
+                    $context,
         ResolveInfo $info,
-        array $value = null,
-        array $args = null
-    ): Value {
+        array       $value = null,
+        array       $args = null
+    ): Value
+    {
         $result = function () {
             return null;
         };
 
         if (isset($args['id'])) {
+            $sliderData = $this->getSlider($args['id']);
+        }
 
-            $slider = $this->sliderCollectionFactory->create();
-            $slider->addFieldToFilter('slider_id', $args['id'])->load();
-            $sliderData = $slider->getFirstItem()->getData();
-
-            $slides = $this->slideCollectionFactory->create();
-            $slides->addSliderFilter($args['id'])
-                ->addStoreFilter()
-                ->addDateFilter()
-                ->addIsActiveFilter()
-                ->addPositionOrder();
-
-            $sliderData['slides'] = $slides->getData();
-
-            $maps = $this->mapCollectionFactory->create();
-            $maps = $maps->addSliderFilter($args['id'])
-                ->addIsActiveFilter()
-                ->getItems();
-
-            foreach ($sliderData['slides'] as &$slide) {
-                if (array_key_exists('mobile_image', $slide) && isset($slide['mobile_image'])){
-                    $slide['mobile_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['mobile_image'];
-                }
-                if (array_key_exists('desktop_image', $slide) && isset($slide['desktop_image'])){
-                    $slide['desktop_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['desktop_image'];
-                }
-                foreach ($maps as $map) {
-                    if ($map['slide_id'] === $slide['slide_id']) {
-                        $slide['maps'][] = $map;
-                    }
-                }
-            }
-            unset ($slide);
-
-            if ($sliderData) {
-                $result = function () use ($sliderData) {
-                    return $sliderData;
-                };
-            }
+        if ($sliderData) {
+            $result = function () use ($sliderData) {
+                return $sliderData;
+            };
         }
 
         return $this->valueFactory->create($result);
